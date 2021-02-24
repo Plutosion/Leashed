@@ -1,9 +1,11 @@
 package plutosion.leashed;
 
-import static plutosion.leashed.Leashed.MOD_ID;
-
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
-import plutosion.leashed.event.LeadBreak;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import plutosion.leashed.init.ModItems;
+
+import static plutosion.leashed.Leashed.MOD_ID;
 
 /**
  * The main class of the mod, this is the class that looks like a mod to forge.
@@ -16,5 +18,8 @@ public class Leashed {
      */
     public static final String MOD_ID = "leashed";
 
-    LeadBreak leadBreak = new LeadBreak();
+    public Leashed() {
+        IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        ModItems.ITEMS.register(eventBus);
+    }
 }
