@@ -1,0 +1,19 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+      "DDD",
+      "DLD",
+      "DDD"
+    ],
+    "key": {
+      "D": {
+        "item": "minecraft:diamond"
+      },
+      "L": {
+        "item": "minecraft:lead"
+      }
+    },
+    "result": {
+      "item": "leashed:diamond_lead"
+    }
+  }
