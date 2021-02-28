@@ -112,8 +112,6 @@ public class LeadBreak {
                 } else {
                     dropLead(mobEntity, world);
                 }
-            } else if (itemStack.isEmpty()) {
-                event.setCanceled(true);
             }
         }
     }
