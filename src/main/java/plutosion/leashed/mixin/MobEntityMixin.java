@@ -30,6 +30,7 @@ public class MobEntityMixin {
 			CompoundNBT persistentNBT = entity.getPersistentData();
 			persistentNBT.putString("LeadItem", itemstack.getItem().getRegistryName().toString());
 			entity.setLeashHolder(player, true);
+			plutosion.leashed.events.LeashHooks.onMobLeashed(entity, player);
 			itemstack.shrink(1);
 			cir.setReturnValue(ActionResultType.func_233537_a_(entity.world.isRemote));
 		}
@@ -39,6 +40,7 @@ public class MobEntityMixin {
 	public void clearLeashed(boolean sendPacket, boolean dropLead) {
 		MobEntity entity = (MobEntity) (Object) this;
 		if (entity.leashHolder != null) {
+			plutosion.leashed.events.LeashHooks.onMobUnleashed(entity, entity.leashHolder);
 			entity.forceSpawn = false;
 			if (!(entity.leashHolder instanceof PlayerEntity)) {
 				entity.leashHolder.forceSpawn = false;
