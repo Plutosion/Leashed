@@ -23,7 +23,7 @@ public class LeadBreak {
     public static void leadBreaking(PlayerTickEvent event) {
         if(event.phase == TickEvent.Phase.START && event.side.isServer()) {
             PlayerEntity player = event.player;
-			List<MobEntity> nearbyMobs = player.world.getLoadedEntitiesWithinAABB(MobEntity.class, player.getBoundingBox().grow(12F, 12F, 12F));
+            List<MobEntity> nearbyMobs = player.world.getLoadedEntitiesWithinAABB(MobEntity.class, player.getBoundingBox().expand(15F, 15F, 15F).expand(-15F, -15F, -15F));
             for(MobEntity mob : nearbyMobs) {
                 if(mob.getLeashed() && mob.getLeashHolder() == player) {
                     Item leadItem;
