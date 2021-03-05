@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.item.LeashKnotEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.LeadItem;
 import net.minecraft.nbt.CompoundNBT;
@@ -38,22 +39,22 @@ public class MobEntityMixin {
 
 	@Overwrite
 	public void clearLeashed(boolean sendPacket, boolean dropLead) {
-		MobEntity entity = (MobEntity) (Object) this;
-		if (entity.leashHolder != null) {
-			plutosion.leashed.events.LeashHooks.onMobUnleashed(entity, entity.leashHolder);
-			entity.forceSpawn = false;
-			if (!(entity.leashHolder instanceof PlayerEntity)) {
-				entity.leashHolder.forceSpawn = false;
+		MobEntity mobEntity = (MobEntity) (Object) this;
+		if (mobEntity.leashHolder != null) {
+			plutosion.leashed.events.LeashHooks.onMobUnleashed(mobEntity, mobEntity.leashHolder);
+			mobEntity.forceSpawn = false;
+			if (!(mobEntity.leashHolder instanceof PlayerEntity)) {
+				mobEntity.leashHolder.forceSpawn = false;
 			}
 
-			entity.leashHolder = null;
-			entity.leashNBTTag = null;
-			if (!entity.world.isRemote && dropLead) {
-				entity.entityDropItem(plutosion.leashed.util.LeadUtil.getUsedLeash(entity));
+			mobEntity.leashHolder = null;
+			mobEntity.leashNBTTag = null;
+			if (!mobEntity.world.isRemote && dropLead) {
+				mobEntity.entityDropItem(plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity));
 			}
 
-			if (!entity.world.isRemote && sendPacket && entity.world instanceof ServerWorld) {
-				((ServerWorld)entity.world).getChunkProvider().sendToAllTracking(entity, new SMountEntityPacket(entity, (Entity)null));
+			if (!mobEntity.world.isRemote && sendPacket && mobEntity.world instanceof ServerWorld) {
+				((ServerWorld)mobEntity.world).getChunkProvider().sendToAllTracking(mobEntity, new SMountEntityPacket(mobEntity, (Entity)null));
 			}
 		}
 	}
@@ -62,6 +63,9 @@ public class MobEntityMixin {
 	private void recreateLeash() {
 		MobEntity mobEntity = (MobEntity) (Object) this;
 		if (mobEntity.leashNBTTag != null && mobEntity.world instanceof ServerWorld) {
+			plutosion.leashed.events.LeashHooks.onMobLeashed(mobEntity, mobEntity.leashHolder);
+			Item leadItem = plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity);
+
 			if (mobEntity.leashNBTTag.hasUniqueId("UUID")) {
 				UUID uuid = mobEntity.leashNBTTag.getUniqueId("UUID");
 				Entity entity = ((ServerWorld)mobEntity.world).getEntityByUuid(uuid);
@@ -71,12 +75,16 @@ public class MobEntityMixin {
 				}
 			} else if (mobEntity.leashNBTTag.contains("X", 99) && mobEntity.leashNBTTag.contains("Y", 99) && mobEntity.leashNBTTag.contains("Z", 99)) {
 				BlockPos blockpos = new BlockPos(mobEntity.leashNBTTag.getInt("X"), mobEntity.leashNBTTag.getInt("Y"), mobEntity.leashNBTTag.getInt("Z"));
-				mobEntity.setLeashHolder(LeashKnotEntity.create(mobEntity.world, blockpos), true);
+				if(leadItem instanceof plutosion.leashed.item.CustomLeadItem) {
+					mobEntity.setLeashHolder(plutosion.leashed.entity.CustomLeashKnotEntity.createCustomLeash(mobEntity.world, blockpos), true);
+				} else {
+					mobEntity.setLeashHolder(LeashKnotEntity.create(mobEntity.world, blockpos), true);
+				}
 				return;
 			}
 
 			if (mobEntity.ticksExisted > 100) {
-				mobEntity.entityDropItem(plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity));
+				mobEntity.entityDropItem(leadItem);
 				mobEntity.leashNBTTag = null;
 			}
 		}
