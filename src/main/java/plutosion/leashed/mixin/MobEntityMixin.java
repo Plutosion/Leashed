@@ -1,6 +1,8 @@
 package plutosion.leashed.mixin;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.item.LeashKnotEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -12,6 +14,7 @@ import net.minecraft.network.play.server.SMountEntityPacket;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -22,9 +25,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.UUID;
 
 @Mixin(MobEntity.class)
-public class MobEntityMixin {
-	@Inject(at = @At("HEAD"), method = "func_233661_c_", cancellable = true)
-	public void func_233661_c_(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResultType> cir) {
+public abstract class MobEntityMixin extends LivingEntity {
+
+	protected MobEntityMixin(EntityType<? extends LivingEntity> type, World worldIn) {
+		super(type, worldIn);
+	}
+
+	@Inject(at = @At("HEAD"), method = "processInteract(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/ActionResultType;", cancellable = true)
+	public void processInteract(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResultType> cir) {
 		MobEntity entity = (MobEntity) (Object) this;
 		ItemStack itemstack = player.getHeldItem(hand);
 		if(itemstack.getItem() instanceof LeadItem && plutosion.leashed.util.LeadUtil.canBeCustomleashed(entity, player, itemstack)) {
@@ -37,7 +45,11 @@ public class MobEntityMixin {
 		}
 	}
 
-	@Overwrite
+	/**
+	 * @author Mrbysco
+	 * @reason There's no other good way to do it
+	 */
+	@Overwrite()
 	public void clearLeashed(boolean sendPacket, boolean dropLead) {
 		MobEntity mobEntity = (MobEntity) (Object) this;
 		if (mobEntity.leashHolder != null) {
@@ -59,6 +71,10 @@ public class MobEntityMixin {
 		}
 	}
 
+	/**
+	 * @author Mrbysco
+	 * @reason There's no other good way to do it
+	 */
 	@Overwrite
 	private void recreateLeash() {
 		MobEntity mobEntity = (MobEntity) (Object) this;

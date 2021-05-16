@@ -21,7 +21,7 @@ import static plutosion.leashed.Leashed.MOD_ID;
 /**
  * The main class of the mod, this is the class that looks like a mod to forge.
  */
-@Mod(MOD_ID)
+@Mod(Leashed.MOD_ID)
 public class Leashed {
 
     /**

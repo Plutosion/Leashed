@@ -37,14 +37,11 @@ public class SyncLeadMessage {
 		Context ctx = context.get();
 		ctx.enqueueWork(() -> {
 			if (ctx.getDirection().getReceptionSide().isClient()) {
-				Leashed.LOGGER.info("Starting a lead sync");
 				Minecraft mc = Minecraft.getInstance();
 				Entity entity = mc.world.getEntityByID(entityID);
 				if (entity instanceof MobEntity) {
 					MobEntity mobEntity = (MobEntity)entity;
-					Leashed.LOGGER.info("Found MobEntity to sync");
 					if(!leadItem.isEmpty()) {
-						System.out.println("hey I'm leading here");
 						CompoundNBT persistentData = mobEntity.getPersistentData();
 						persistentData.putString("LeadItem", leadItem);
 					}

@@ -21,7 +21,7 @@ public class ModRegistry {
     public static final RegistryObject<EntityType<CustomLeashKnotEntity>> LEASH_KNOT = ENTITIES.register("leash_knot", () ->
             register("leash_knot", EntityType.Builder.<CustomLeashKnotEntity>create(CustomLeashKnotEntity::new, EntityClassification.MISC)
                     .size(0.5F, 0.5F)
-                    .trackingRange(10).func_233608_b_(Integer.MAX_VALUE)
+                    .trackingRange(10).updateInterval(Integer.MAX_VALUE)
                     .setCustomClientFactory(CustomLeashKnotEntity::new)));
 
     public static <T extends Entity> EntityType<T> register(String id, EntityType.Builder<T> builder) {
