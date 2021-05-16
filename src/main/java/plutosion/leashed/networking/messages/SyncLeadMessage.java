@@ -1,4 +1,4 @@
-package plutosion.leashed.messages;
+package plutosion.leashed.networking.messages;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -6,18 +6,12 @@ import net.minecraft.entity.MobEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent.Context;
-import plutosion.leashed.Leashed;
 
 import java.util.function.Supplier;
 
 public class SyncLeadMessage {
 	private int entityID;
 	private String leadItem;
-
-	private SyncLeadMessage(PacketBuffer buf) {
-		this.entityID = buf.readInt();
-		this.leadItem = buf.readString();
-	}
 
 	public SyncLeadMessage(int entityID, String leadItem) {
 		this.entityID = entityID;

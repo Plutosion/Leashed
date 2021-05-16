@@ -16,8 +16,7 @@ import net.minecraftforge.fml.network.PacketDistributor;
 import plutosion.leashed.Leashed;
 import plutosion.leashed.events.LeashEvent;
 import plutosion.leashed.item.CustomLeadItem;
-import plutosion.leashed.messages.MotionDeniedMessage;
-import plutosion.leashed.messages.SyncLeadMessage;
+import plutosion.leashed.networking.PacketHandler;
 import plutosion.leashed.util.LeadUtil;
 
 import java.util.HashMap;
@@ -55,7 +54,7 @@ public class LeadHandler {
             if(leadItem.isEmpty()) {
                 leadItem = "minecraft:lead";
             }
-            Leashed.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), new SyncLeadMessage(mob.getEntityId(), leadItem));
+            PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), new plutosion.leashed.networking.messages.SyncLeadMessage(mob.getEntityId(), leadItem));
 
             if(mob.getLeashed() && mob.getLeashHolder() == player) {
                 leadItemCache.put(mob.getUniqueID(), LeadUtil.getUsedLeash(mob));
@@ -93,7 +92,7 @@ public class LeadHandler {
 
             if(r > maxLength) {
                 LeadUtil.forcePlayerBack(leashedEntity, player, r);
-                Leashed.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), new MotionDeniedMessage(leashedEntity.getEntityId(), r));
+                PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), new plutosion.leashed.networking.messages.MotionDeniedMessage(leashedEntity.getEntityId(), r));
             }
         }
     }
