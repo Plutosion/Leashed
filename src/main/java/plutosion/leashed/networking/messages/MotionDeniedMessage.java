@@ -1,11 +1,11 @@
-package plutosion.leashed.messages;
+package plutosion.leashed.networking.messages;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent.Context;
+import plutosion.leashed.client.ClientUtil;
 import plutosion.leashed.util.LeadUtil;
 
 import java.util.function.Supplier;
@@ -13,11 +13,6 @@ import java.util.function.Supplier;
 public class MotionDeniedMessage {
 	private int entityID;
 	private double radius;
-
-	private MotionDeniedMessage(PacketBuffer buf) {
-		this.entityID = buf.readInt();
-		this.radius = buf.readDouble();
-	}
 
 	public MotionDeniedMessage(int entityID, double radius) {
 		this.entityID = entityID;
@@ -37,12 +32,11 @@ public class MotionDeniedMessage {
 		Context ctx = context.get();
 		ctx.enqueueWork(() -> {
 			if (ctx.getDirection().getReceptionSide().isClient()) {
-				Minecraft mc = Minecraft.getInstance();
+				net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
 				Entity entity = mc.world.getEntityByID(entityID);
 				if (entity instanceof MobEntity) {
 					MobEntity mobEntity = (MobEntity)entity;
-					PlayerEntity player = mc.player;
-
+					PlayerEntity player = ClientUtil.getClientPlayer(mc);
 					LeadUtil.forcePlayerBack(mobEntity, player, radius);
 				}
 			}

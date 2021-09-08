@@ -15,6 +15,10 @@ import org.spongepowered.asm.mixin.Overwrite;
 @Mixin(LeadItem.class)
 public class LeadItemMixin {
 
+	/**
+	 * @author Mrbysco
+	 * @reason There's no other good way to do it
+	 */
 	@Overwrite
 	public static ActionResultType bindPlayerMobs(PlayerEntity player, World world, BlockPos pos) {
 		LeashKnotEntity leashknotentity = null;
@@ -24,7 +28,7 @@ public class LeadItemMixin {
 		int j = pos.getY();
 		int k = pos.getZ();
 
-		for(MobEntity mobentity : world.getEntitiesWithinAABB(MobEntity.class, new AxisAlignedBB((double)i - 7.0D, (double)j - 7.0D, (double)k - 7.0D, (double)i + 7.0D, (double)j + 7.0D, (double)k + 7.0D))) {
+		for(MobEntity mobentity : world.getEntitiesWithinAABB(MobEntity.class, new AxisAlignedBB((double)i - d0, (double)j - d0, (double)k - d0, (double)i + d0, (double)j + d0, (double)k + d0))) {
 			if (mobentity.getLeashHolder() == player) {
 				if (leashknotentity == null) {
 					Item boundLeash = plutosion.leashed.util.LeadUtil.getUsedLeash(mobentity);
