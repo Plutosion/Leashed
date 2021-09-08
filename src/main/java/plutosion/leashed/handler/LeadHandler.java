@@ -8,7 +8,9 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.TickEvent.PlayerTickEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.StartTracking;
+import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
@@ -87,6 +89,16 @@ public class LeadHandler {
                 }
                 //Remove any mob UUID's who isn't directly leashed to a player
                 removeList.forEach(leadItemCache::remove);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void despawnEvent(LivingSpawnEvent.AllowDespawn event) {
+        if(event.getEntityLiving() instanceof MobEntity) {
+            MobEntity mob = (MobEntity) event.getEntityLiving();
+            if(mob.getLeashed() && LeadUtil.getUsedLeash(mob) instanceof CustomLeadItem) {
+                event.setResult(Result.DENY);
             }
         }
     }
