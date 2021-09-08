@@ -19,7 +19,9 @@ import plutosion.leashed.item.CustomLeadItem;
 import plutosion.leashed.networking.PacketHandler;
 import plutosion.leashed.util.LeadUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -73,13 +75,18 @@ public class LeadHandler {
             PlayerEntity player = event.player;
             ServerWorld world = (ServerWorld)player.world;
             if(!leadItemCache.isEmpty()) {
+                List<UUID> removeList = new ArrayList<>();
                 for(Map.Entry<UUID, Item> entry : leadItemCache.entrySet()) {
                     MobEntity mob = (MobEntity) world.getEntityByUuid(entry.getKey());
-                    if(mob.getLeashed() && mob.getLeashHolder() == player) {
+                    if(mob != null && mob.getLeashed() && mob.getLeashHolder() == player) {
                         Item leadItem = leadItemCache.get(mob.getUniqueID());
                         leadBehavior(leadItem, player, mob);
+                    } else {
+                        removeList.add(entry.getKey());
                     }
                 }
+                //Remove any mob UUID's who isn't directly leashed to a player
+                removeList.forEach(leadItemCache::remove);
             }
         }
     }
