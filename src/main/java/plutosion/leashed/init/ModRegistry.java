@@ -16,12 +16,12 @@ public class ModRegistry {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Leashed.MOD_ID);
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, Leashed.MOD_ID);
 
-    public static final RegistryObject<Item> DIAMOND_LEAD = ITEMS.register("diamond_lead" , () -> new CustomLeadItem(new Item.Properties().group(ItemGroup.MISC), 9.5F));
+    public static final RegistryObject<Item> DIAMOND_LEAD = ITEMS.register("diamond_lead" , () -> new CustomLeadItem(new Item.Properties().tab(ItemGroup.TAB_MISC), 9.5F));
 
     public static final RegistryObject<EntityType<CustomLeashKnotEntity>> LEASH_KNOT = ENTITIES.register("leash_knot", () ->
-            register("leash_knot", EntityType.Builder.<CustomLeashKnotEntity>create(CustomLeashKnotEntity::new, EntityClassification.MISC)
-                    .size(0.5F, 0.5F)
-                    .trackingRange(10).updateInterval(Integer.MAX_VALUE)
+            register("leash_knot", EntityType.Builder.<CustomLeashKnotEntity>of(CustomLeashKnotEntity::new, EntityClassification.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(10).updateInterval(Integer.MAX_VALUE)
                     .setCustomClientFactory(CustomLeashKnotEntity::new)));
 
     public static <T extends Entity> EntityType<T> register(String id, EntityType.Builder<T> builder) {

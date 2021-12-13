@@ -20,7 +20,7 @@ public abstract class MobRendererMixin<T extends MobEntity, M extends EntityMode
 	}
 
 	@Inject(method = "renderLeash(Lnet/minecraft/entity/MobEntity;FLcom/mojang/blaze3d/matrix/MatrixStack;Lnet/minecraft/client/renderer/IRenderTypeBuffer;Lnet/minecraft/entity/Entity;)V", at = @At("HEAD"), cancellable = true)
-	private <E extends Entity> void renderTheLeash(T entityLivingIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, E leashHolder, CallbackInfo callback) {
+	private <E extends Entity> void leashedRenderLeash(T entityLivingIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, E leashHolder, CallbackInfo callback) {
 		if(plutosion.leashed.util.LeadUtil.getUsedLeash(entityLivingIn) instanceof plutosion.leashed.item.CustomLeadItem) {
 			plutosion.leashed.client.LeashRenderHelper.renderCustomLeash(entityLivingIn, partialTicks, matrixStackIn, bufferIn, leashHolder);
 			callback.cancel();

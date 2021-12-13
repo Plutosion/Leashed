@@ -33,21 +33,21 @@ public class LeadHandler {
 
     @SubscribeEvent
     public static void onLeash(LeashEvent.leashMobEvent event) {
-        if(!event.getMobEntity().world.isRemote) {
-            leadItemCache.put(event.getMobEntity().getUniqueID(), LeadUtil.getUsedLeash(event.getMobEntity()));
+        if(!event.getMobEntity().level.isClientSide) {
+            leadItemCache.put(event.getMobEntity().getUUID(), LeadUtil.getUsedLeash(event.getMobEntity()));
         }
     }
 
     @SubscribeEvent
     public static void onUnleash(LeashEvent.unleashMobEvent event) {
-        if(!event.getMobEntity().world.isRemote) {
-            leadItemCache.remove(event.getMobEntity().getUniqueID());
+        if(!event.getMobEntity().level.isClientSide) {
+            leadItemCache.remove(event.getMobEntity().getUUID());
         }
     }
 
     @SubscribeEvent
     public static void onTrackEntity(StartTracking event) {
-        if (event.getEntity().world.isRemote)
+        if (event.getEntity().level.isClientSide)
             return;
 
         if(event.getTarget() instanceof MobEntity) {
@@ -58,10 +58,10 @@ public class LeadHandler {
             if(leadItem.isEmpty()) {
                 leadItem = "minecraft:lead";
             }
-            PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), new plutosion.leashed.networking.messages.SyncLeadMessage(mob.getEntityId(), leadItem));
+            PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), new plutosion.leashed.networking.messages.SyncLeadMessage(mob.getId(), leadItem));
 
-            if(mob.getLeashed() && mob.getLeashHolder() == player) {
-                leadItemCache.put(mob.getUniqueID(), LeadUtil.getUsedLeash(mob));
+            if(mob.isLeashed() && mob.getLeashHolder() == player) {
+                leadItemCache.put(mob.getUUID(), LeadUtil.getUsedLeash(mob));
             }
         }
     }
@@ -75,13 +75,13 @@ public class LeadHandler {
     public static void leadBreaking(PlayerTickEvent event) {
         if(event.phase == TickEvent.Phase.START && event.side.isServer()) {
             PlayerEntity player = event.player;
-            ServerWorld world = (ServerWorld)player.world;
+            ServerWorld world = (ServerWorld)player.level;
             if(!leadItemCache.isEmpty()) {
                 List<UUID> removeList = new ArrayList<>();
                 for(Map.Entry<UUID, Item> entry : leadItemCache.entrySet()) {
-                    MobEntity mob = (MobEntity) world.getEntityByUuid(entry.getKey());
-                    if(mob != null && mob.getLeashed() && mob.getLeashHolder() == player) {
-                        Item leadItem = leadItemCache.get(mob.getUniqueID());
+                    MobEntity mob = (MobEntity) world.getEntity(entry.getKey());
+                    if(mob != null && mob.isLeashed() && mob.getLeashHolder() == player) {
+                        Item leadItem = leadItemCache.get(mob.getUUID());
                         leadBehavior(leadItem, player, mob);
                     } else {
                         removeList.add(entry.getKey());
@@ -97,7 +97,7 @@ public class LeadHandler {
     public static void despawnEvent(LivingSpawnEvent.AllowDespawn event) {
         if(event.getEntityLiving() instanceof MobEntity) {
             MobEntity mob = (MobEntity) event.getEntityLiving();
-            if(mob.getLeashed() && LeadUtil.getUsedLeash(mob) instanceof CustomLeadItem) {
+            if(mob.isLeashed() && LeadUtil.getUsedLeash(mob) instanceof CustomLeadItem) {
                 event.setResult(Result.DENY);
             }
         }
@@ -106,12 +106,12 @@ public class LeadHandler {
     public static void leadBehavior(Item lead, PlayerEntity player, MobEntity leashedEntity) {
 	    if(lead instanceof CustomLeadItem) {
 	        CustomLeadItem customLead = (CustomLeadItem)lead;
-            double r = leashedEntity.getDistance(player);
+            double r = leashedEntity.distanceTo(player);
             double maxLength = customLead.getMaxRange();
 
             if(r > maxLength) {
                 LeadUtil.forcePlayerBack(leashedEntity, player, r);
-                PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), new plutosion.leashed.networking.messages.MotionDeniedMessage(leashedEntity.getEntityId(), r));
+                PacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), new plutosion.leashed.networking.messages.MotionDeniedMessage(leashedEntity.getId(), r));
             }
         }
     }

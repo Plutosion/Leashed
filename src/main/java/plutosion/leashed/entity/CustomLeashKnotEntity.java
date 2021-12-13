@@ -23,12 +23,12 @@ public class CustomLeashKnotEntity extends LeashKnotEntity {
 
 	public CustomLeashKnotEntity(World worldIn, BlockPos hangingPositionIn) {
 		super(worldIn, hangingPositionIn);
-		this.setPosition((double)hangingPositionIn.getX() + 0.5D, (double)hangingPositionIn.getY() + 0.5D, (double)hangingPositionIn.getZ() + 0.5D);
+		this.setPos((double)hangingPositionIn.getX() + 0.5D, (double)hangingPositionIn.getY() + 0.5D, (double)hangingPositionIn.getZ() + 0.5D);
 		float f = 0.125F;
 		float f1 = 0.1875F;
 		float f2 = 0.25F;
-		this.setBoundingBox(new AxisAlignedBB(this.getPosX() - 0.1875D, this.getPosY() - 0.25D + 0.125D, this.getPosZ() - 0.1875D, this.getPosX() + 0.1875D, this.getPosY() + 0.25D + 0.125D, this.getPosZ() + 0.1875D));
-		this.forceSpawn = true;
+		this.setBoundingBox(new AxisAlignedBB(this.getX() - 0.1875D, this.getY() - 0.25D + 0.125D, this.getZ() - 0.1875D, this.getX() + 0.1875D, this.getY() + 0.25D + 0.125D, this.getZ() + 0.1875D));
+		this.forcedLoading = true;
 	}
 
 	public CustomLeashKnotEntity(FMLPlayMessages.SpawnEntity spawnEntity, World worldIn) {
@@ -40,27 +40,27 @@ public class CustomLeashKnotEntity extends LeashKnotEntity {
 		return ModRegistry.LEASH_KNOT.get();
 	}
 
-	public ActionResultType processInitialInteract(PlayerEntity player, Hand hand) {
-		if (this.world.isRemote) {
+	public ActionResultType interact(PlayerEntity player, Hand hand) {
+		if (this.level.isClientSide) {
 			return ActionResultType.SUCCESS;
 		} else {
 			boolean flag = false;
 			double d0 = 7.0D;
-			List<MobEntity> list = this.world.getEntitiesWithinAABB(MobEntity.class, new AxisAlignedBB(this.getPosX() - 7.0D, this.getPosY() - 7.0D, this.getPosZ() - 7.0D, this.getPosX() + 7.0D, this.getPosY() + 7.0D, this.getPosZ() + 7.0D));
+			List<MobEntity> list = this.level.getEntitiesOfClass(MobEntity.class, new AxisAlignedBB(this.getX() - 7.0D, this.getY() - 7.0D, this.getZ() - 7.0D, this.getX() + 7.0D, this.getY() + 7.0D, this.getZ() + 7.0D));
 
 			for(MobEntity mobentity : list) {
 				if (mobentity.getLeashHolder() == player) {
-					mobentity.setLeashHolder(this, true);
+					mobentity.setLeashedTo(this, true);
 					flag = true;
 				}
 			}
 
 			if (!flag) {
 				this.remove();
-				if (player.abilities.isCreativeMode) {
+				if (player.abilities.instabuild) {
 					for(MobEntity mobentity1 : list) {
-						if (mobentity1.getLeashed() && mobentity1.getLeashHolder() == this) {
-							mobentity1.clearLeashed(true, false);
+						if (mobentity1.isLeashed() && mobentity1.getLeashHolder() == this) {
+							mobentity1.dropLeash(true, false);
 						}
 					}
 				}
@@ -75,20 +75,20 @@ public class CustomLeashKnotEntity extends LeashKnotEntity {
 		int j = pos.getY();
 		int k = pos.getZ();
 
-		for(CustomLeashKnotEntity CustomLeashKnotEntity : world.getEntitiesWithinAABB(CustomLeashKnotEntity.class, new AxisAlignedBB((double)i - 1.0D, (double)j - 1.0D, (double)k - 1.0D, (double)i + 1.0D, (double)j + 1.0D, (double)k + 1.0D))) {
-			if (CustomLeashKnotEntity.getHangingPosition().equals(pos)) {
+		for(CustomLeashKnotEntity CustomLeashKnotEntity : world.getEntitiesOfClass(CustomLeashKnotEntity.class, new AxisAlignedBB((double)i - 1.0D, (double)j - 1.0D, (double)k - 1.0D, (double)i + 1.0D, (double)j + 1.0D, (double)k + 1.0D))) {
+			if (CustomLeashKnotEntity.getPos().equals(pos)) {
 				return CustomLeashKnotEntity;
 			}
 		}
 
 		CustomLeashKnotEntity CustomLeashKnotEntity1 = new CustomLeashKnotEntity(world, pos);
-		world.addEntity(CustomLeashKnotEntity1);
-		CustomLeashKnotEntity1.playPlaceSound();
+		world.addFreshEntity(CustomLeashKnotEntity1);
+		CustomLeashKnotEntity1.playPlacementSound();
 		return CustomLeashKnotEntity1;
 	}
 
 	@Override
-	public IPacket<?> createSpawnPacket() {
+	public IPacket<?> getAddEntityPacket() {
 		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 }
