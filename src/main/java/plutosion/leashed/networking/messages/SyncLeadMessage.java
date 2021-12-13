@@ -20,11 +20,11 @@ public class SyncLeadMessage {
 
 	public void encode(PacketBuffer buf) {
 		buf.writeInt(entityID);
-		buf.writeString(leadItem);
+		buf.writeUtf(leadItem);
 	}
 
 	public static SyncLeadMessage decode(final PacketBuffer packetBuffer) {
-		return new SyncLeadMessage(packetBuffer.readInt(), packetBuffer.readString());
+		return new SyncLeadMessage(packetBuffer.readInt(), packetBuffer.readUtf());
 	}
 
 	public void handle(Supplier<Context> context) {
@@ -32,7 +32,7 @@ public class SyncLeadMessage {
 		ctx.enqueueWork(() -> {
 			if (ctx.getDirection().getReceptionSide().isClient()) {
 				Minecraft mc = Minecraft.getInstance();
-				Entity entity = mc.world.getEntityByID(entityID);
+				Entity entity = mc.level.getEntity(entityID);
 				if (entity instanceof MobEntity) {
 					MobEntity mobEntity = (MobEntity)entity;
 					if(!leadItem.isEmpty()) {

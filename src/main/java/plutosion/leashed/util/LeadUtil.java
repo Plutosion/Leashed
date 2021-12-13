@@ -36,16 +36,16 @@ public class LeadUtil {
 	public static boolean canBeCustomleashed(MobEntity mobEntity, PlayerEntity player, ItemStack stack) {
 		if(stack.getItem() instanceof CustomLeadItem) {
 			CustomLeadItem customLead = (CustomLeadItem)stack.getItem();
-			return !mobEntity.getLeashed() && customLead.canLeashMob(mobEntity, player);
+			return !mobEntity.isLeashed() && customLead.canLeashMob(mobEntity, player);
 		} else {
-			return mobEntity.canBeLeashedTo(player);
+			return mobEntity.canBeLeashed(player);
 		}
 	}
 
 	public static void forcePlayerBack(MobEntity leashedEntity, PlayerEntity player, double radius) {
-		double d0 = (leashedEntity.getPosX() - player.getPosX()) / (double)radius;
-		double d1 = (leashedEntity.getPosY() - player.getPosY()) / (double)radius;
-		double d2 = (leashedEntity.getPosZ() - player.getPosZ()) / (double)radius;
-		player.setMotion(player.getMotion().add(Math.copySign(d0 * d0 * 0.4D, d0), Math.copySign(d1 * d1 * 0.4D, d1), Math.copySign(d2 * d2 * 0.4D, d2)));
+		double d0 = (leashedEntity.getX() - player.getX()) / (double)radius;
+		double d1 = (leashedEntity.getY() - player.getY()) / (double)radius;
+		double d2 = (leashedEntity.getZ() - player.getZ()) / (double)radius;
+		player.setDeltaMovement(player.getDeltaMovement().add(Math.copySign(d0 * d0 * 0.4D, d0), Math.copySign(d1 * d1 * 0.4D, d1), Math.copySign(d2 * d2 * 0.4D, d2)));
 	}
 }

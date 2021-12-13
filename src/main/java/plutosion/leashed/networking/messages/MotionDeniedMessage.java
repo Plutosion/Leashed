@@ -33,7 +33,7 @@ public class MotionDeniedMessage {
 		ctx.enqueueWork(() -> {
 			if (ctx.getDirection().getReceptionSide().isClient()) {
 				net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-				Entity entity = mc.world.getEntityByID(entityID);
+				Entity entity = mc.level.getEntity(entityID);
 				if (entity instanceof MobEntity) {
 					MobEntity mobEntity = (MobEntity)entity;
 					PlayerEntity player = ClientUtil.getClientPlayer(mc);

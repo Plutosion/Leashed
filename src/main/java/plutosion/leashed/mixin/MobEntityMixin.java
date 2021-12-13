@@ -31,17 +31,17 @@ public abstract class MobEntityMixin extends LivingEntity {
 		super(type, worldIn);
 	}
 
-	@Inject(at = @At("HEAD"), method = "processInteract(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/ActionResultType;", cancellable = true)
-	public void processInteract(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResultType> cir) {
+	@Inject(at = @At("HEAD"), method = "checkAndHandleImportantInteractions(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/ActionResultType;", cancellable = true)
+	public void checkAndHandleImportantInteractions(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResultType> cir) {
 		MobEntity entity = (MobEntity) (Object) this;
-		ItemStack itemstack = player.getHeldItem(hand);
+		ItemStack itemstack = player.getItemInHand(hand);
 		if(itemstack.getItem() instanceof LeadItem && plutosion.leashed.util.LeadUtil.canBeCustomleashed(entity, player, itemstack)) {
 			CompoundNBT persistentNBT = entity.getPersistentData();
 			persistentNBT.putString("LeadItem", itemstack.getItem().getRegistryName().toString());
-			entity.setLeashHolder(player, true);
+			entity.setLeashedTo(player, true);
 			plutosion.leashed.events.LeashHooks.onMobLeashed(entity, player);
 			itemstack.shrink(1);
-			cir.setReturnValue(ActionResultType.func_233537_a_(entity.world.isRemote));
+			cir.setReturnValue(ActionResultType.sidedSuccess(entity.level.isClientSide));
 		}
 	}
 
@@ -50,23 +50,23 @@ public abstract class MobEntityMixin extends LivingEntity {
 	 * @reason There's no other good way to do it
 	 */
 	@Overwrite()
-	public void clearLeashed(boolean sendPacket, boolean dropLead) {
+	public void dropLeash(boolean sendPacket, boolean dropLead) {
 		MobEntity mobEntity = (MobEntity) (Object) this;
 		if (mobEntity.leashHolder != null) {
 			plutosion.leashed.events.LeashHooks.onMobUnleashed(mobEntity, mobEntity.leashHolder);
-			mobEntity.forceSpawn = false;
+			mobEntity.forcedLoading = false;
 			if (!(mobEntity.leashHolder instanceof PlayerEntity)) {
-				mobEntity.leashHolder.forceSpawn = false;
+				mobEntity.leashHolder.forcedLoading = false;
 			}
 
 			mobEntity.leashHolder = null;
-			mobEntity.leashNBTTag = null;
-			if (!mobEntity.world.isRemote && dropLead) {
-				mobEntity.entityDropItem(plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity));
+			mobEntity.leashInfoTag = null;
+			if (!mobEntity.level.isClientSide && dropLead) {
+				mobEntity.spawnAtLocation(plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity));
 			}
 
-			if (!mobEntity.world.isRemote && sendPacket && mobEntity.world instanceof ServerWorld) {
-				((ServerWorld)mobEntity.world).getChunkProvider().sendToAllTracking(mobEntity, new SMountEntityPacket(mobEntity, (Entity)null));
+			if (!mobEntity.level.isClientSide && sendPacket && mobEntity.level instanceof ServerWorld) {
+				((ServerWorld)mobEntity.level).getChunkSource().broadcast(mobEntity, new SMountEntityPacket(mobEntity, (Entity)null));
 			}
 		}
 	}
@@ -76,32 +76,32 @@ public abstract class MobEntityMixin extends LivingEntity {
 	 * @reason There's no other good way to do it
 	 */
 	@Overwrite
-	private void recreateLeash() {
+	private void restoreLeashFromSave() {
 		MobEntity mobEntity = (MobEntity) (Object) this;
-		if (mobEntity.leashNBTTag != null && mobEntity.world instanceof ServerWorld) {
+		if (mobEntity.leashInfoTag != null && mobEntity.level instanceof ServerWorld) {
 			plutosion.leashed.events.LeashHooks.onMobLeashed(mobEntity, mobEntity.leashHolder);
 			Item leadItem = plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity);
 
-			if (mobEntity.leashNBTTag.hasUniqueId("UUID")) {
-				UUID uuid = mobEntity.leashNBTTag.getUniqueId("UUID");
-				Entity entity = ((ServerWorld)mobEntity.world).getEntityByUuid(uuid);
+			if (mobEntity.leashInfoTag.hasUUID("UUID")) {
+				UUID uuid = mobEntity.leashInfoTag.getUUID("UUID");
+				Entity entity = ((ServerWorld)mobEntity.level).getEntity(uuid);
 				if (entity != null) {
-					mobEntity.setLeashHolder(entity, true);
+					mobEntity.setLeashedTo(entity, true);
 					return;
 				}
-			} else if (mobEntity.leashNBTTag.contains("X", 99) && mobEntity.leashNBTTag.contains("Y", 99) && mobEntity.leashNBTTag.contains("Z", 99)) {
-				BlockPos blockpos = new BlockPos(mobEntity.leashNBTTag.getInt("X"), mobEntity.leashNBTTag.getInt("Y"), mobEntity.leashNBTTag.getInt("Z"));
+			} else if (mobEntity.leashInfoTag.contains("X", 99) && mobEntity.leashInfoTag.contains("Y", 99) && mobEntity.leashInfoTag.contains("Z", 99)) {
+				BlockPos blockpos = new BlockPos(mobEntity.leashInfoTag.getInt("X"), mobEntity.leashInfoTag.getInt("Y"), mobEntity.leashInfoTag.getInt("Z"));
 				if(leadItem instanceof plutosion.leashed.item.CustomLeadItem) {
-					mobEntity.setLeashHolder(plutosion.leashed.entity.CustomLeashKnotEntity.createCustomLeash(mobEntity.world, blockpos), true);
+					mobEntity.setLeashedTo(plutosion.leashed.entity.CustomLeashKnotEntity.createCustomLeash(mobEntity.level, blockpos), true);
 				} else {
-					mobEntity.setLeashHolder(LeashKnotEntity.create(mobEntity.world, blockpos), true);
+					mobEntity.setLeashedTo(LeashKnotEntity.getOrCreateKnot(mobEntity.level, blockpos), true);
 				}
 				return;
 			}
 
-			if (mobEntity.ticksExisted > 100) {
-				mobEntity.entityDropItem(leadItem);
-				mobEntity.leashNBTTag = null;
+			if (mobEntity.tickCount > 100) {
+				mobEntity.spawnAtLocation(leadItem);
+				mobEntity.leashInfoTag = null;
 			}
 		}
 	}

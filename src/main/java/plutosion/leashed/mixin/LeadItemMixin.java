@@ -28,18 +28,18 @@ public class LeadItemMixin {
 		int j = pos.getY();
 		int k = pos.getZ();
 
-		for(MobEntity mobentity : world.getEntitiesWithinAABB(MobEntity.class, new AxisAlignedBB((double)i - d0, (double)j - d0, (double)k - d0, (double)i + d0, (double)j + d0, (double)k + d0))) {
+		for(MobEntity mobentity : world.getEntitiesOfClass(MobEntity.class, new AxisAlignedBB((double)i - d0, (double)j - d0, (double)k - d0, (double)i + d0, (double)j + d0, (double)k + d0))) {
 			if (mobentity.getLeashHolder() == player) {
 				if (leashknotentity == null) {
 					Item boundLeash = plutosion.leashed.util.LeadUtil.getUsedLeash(mobentity);
 					if(boundLeash instanceof plutosion.leashed.item.CustomLeadItem) {
 						leashknotentity = plutosion.leashed.entity.CustomLeashKnotEntity.createCustomLeash(world, pos);
 					} else {
-						leashknotentity = LeashKnotEntity.create(world, pos);
+						leashknotentity = LeashKnotEntity.getOrCreateKnot(world, pos);
 					}
 				}
 
-				mobentity.setLeashHolder(leashknotentity, true);
+				mobentity.setLeashedTo(leashknotentity, true);
 				flag = true;
 			}
 		}

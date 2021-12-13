@@ -23,19 +23,19 @@ public class CustomLeashKnotRenderer extends EntityRenderer<CustomLeashKnotEntit
 	}
 
 	public void render(CustomLeashKnotEntity entityIn, float entityYaw, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn) {
-		matrixStackIn.push();
+		matrixStackIn.pushPose();
 		matrixStackIn.scale(-1.0F, -1.0F, 1.0F);
-		this.leashKnotModel.setRotationAngles(entityIn, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-		IVertexBuilder ivertexbuilder = bufferIn.getBuffer(this.leashKnotModel.getRenderType(LEASH_KNOT_TEXTURES));
-		this.leashKnotModel.render(matrixStackIn, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-		matrixStackIn.pop();
+		this.leashKnotModel.setupAnim(entityIn, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+		IVertexBuilder ivertexbuilder = bufferIn.getBuffer(this.leashKnotModel.renderType(LEASH_KNOT_TEXTURES));
+		this.leashKnotModel.renderToBuffer(matrixStackIn, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+		matrixStackIn.popPose();
 		super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
 	}
 
 	/**
 	 * Returns the location of an entity's texture.
 	 */
-	public ResourceLocation getEntityTexture(CustomLeashKnotEntity entity) {
+	public ResourceLocation getTextureLocation(CustomLeashKnotEntity entity) {
 		return LEASH_KNOT_TEXTURES;
 	}
 }
