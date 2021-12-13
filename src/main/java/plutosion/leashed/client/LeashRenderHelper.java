@@ -21,9 +21,9 @@ public class LeashRenderHelper {
 		Vec3 vec31 = mob.getLeashOffset();
 		double d1 = Math.cos(d0) * vec31.z + Math.sin(d0) * vec31.x;
 		double d2 = Math.sin(d0) * vec31.z - Math.cos(d0) * vec31.x;
-		double d3 = Mth.lerp((double)partialTicks, mob.xo, mob.getX()) + d1;
-		double d4 = Mth.lerp((double)partialTicks, mob.yo, mob.getY()) + vec31.y;
-		double d5 = Mth.lerp((double)partialTicks, mob.zo, mob.getZ()) + d2;
+		double d3 = Mth.lerp(partialTicks, mob.xo, mob.getX()) + d1;
+		double d4 = Mth.lerp(partialTicks, mob.yo, mob.getY()) + vec31.y;
+		double d5 = Mth.lerp(partialTicks, mob.zo, mob.getZ()) + d2;
 		poseStack.translate(d1, vec31.y, d2);
 		float f = (float)(vec3.x - d3);
 		float f1 = (float)(vec3.y - d4);
@@ -65,6 +65,7 @@ public class LeashRenderHelper {
 		float f2 = 0.29F * f1;
 		float f3 = 0.929F * f1;
 		float f4 = 0.851F * f1;
+//		Original colors:
 //		float f2 = 0.5F * f1;
 //		float f3 = 0.4F * f1;
 //		float f4 = 0.3F * f1;

@@ -13,8 +13,8 @@ import net.minecraftforge.event.entity.player.PlayerEvent.StartTracking;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fmllegacy.network.PacketDistributor;
-import net.minecraftforge.fmlserverevents.FMLServerStoppingEvent;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import plutosion.leashed.Leashed;
 import plutosion.leashed.events.LeashEvent;
 import plutosion.leashed.item.CustomLeadItem;
@@ -66,7 +66,7 @@ public class LeadHandler {
     }
 
     @SubscribeEvent
-    public static void onServerStopping(FMLServerStoppingEvent event) {
+    public static void onServerStopping(ServerStoppingEvent event) {
         leadItemCache.clear();
     }
 

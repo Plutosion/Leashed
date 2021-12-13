@@ -10,8 +10,8 @@ import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.fmllegacy.network.FMLPlayMessages;
-import net.minecraftforge.fmllegacy.network.NetworkHooks;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.network.PlayMessages.SpawnEntity;
 import plutosion.leashed.init.ModRegistry;
 
 import java.util.List;
@@ -23,10 +23,10 @@ public class CustomLeashKnotEntity extends LeashFenceKnotEntity {
 
 	public CustomLeashKnotEntity(Level worldIn, BlockPos hangingPositionIn) {
 		super(worldIn, hangingPositionIn);
-		this.setPos((double)hangingPositionIn.getX(), (double)hangingPositionIn.getY(), (double)hangingPositionIn.getZ());
+		this.setPos(hangingPositionIn.getX(), hangingPositionIn.getY(), hangingPositionIn.getZ());
 	}
 
-	public CustomLeashKnotEntity(FMLPlayMessages.SpawnEntity spawnEntity, Level worldIn) {
+	public CustomLeashKnotEntity(SpawnEntity spawnEntity, Level worldIn) {
 		this(worldIn, new BlockPos(spawnEntity.getPosX(), spawnEntity.getPosY(), spawnEntity.getPosZ()));
 	}
 
