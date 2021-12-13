@@ -1,35 +1,37 @@
 package plutosion.leashed.client.renderer;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.model.LeashKnotModel;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.client.renderer.entity.model.LeashKnotModel;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import plutosion.leashed.Leashed;
+import plutosion.leashed.client.ClientHandler;
 import plutosion.leashed.entity.CustomLeashKnotEntity;
 
 @OnlyIn(Dist.CLIENT)
 public class CustomLeashKnotRenderer extends EntityRenderer<CustomLeashKnotEntity> {
 	private static final ResourceLocation LEASH_KNOT_TEXTURES = new ResourceLocation(Leashed.MOD_ID, "textures/entity/diamond_lead_knot.png");
-	private final LeashKnotModel<CustomLeashKnotEntity> leashKnotModel = new LeashKnotModel<>();
+	private final LeashKnotModel<CustomLeashKnotEntity> model;
 
-	public CustomLeashKnotRenderer(EntityRendererManager renderManagerIn) {
-		super(renderManagerIn);
+	public CustomLeashKnotRenderer(EntityRendererProvider.Context context) {
+		super(context);
+		this.model = new LeashKnotModel<>(context.bakeLayer(ClientHandler.LEASHED_KNOT));
 	}
 
-	public void render(CustomLeashKnotEntity entityIn, float entityYaw, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int packedLightIn) {
-		matrixStackIn.pushPose();
-		matrixStackIn.scale(-1.0F, -1.0F, 1.0F);
-		this.leashKnotModel.setupAnim(entityIn, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-		IVertexBuilder ivertexbuilder = bufferIn.getBuffer(this.leashKnotModel.renderType(LEASH_KNOT_TEXTURES));
-		this.leashKnotModel.renderToBuffer(matrixStackIn, ivertexbuilder, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-		matrixStackIn.popPose();
-		super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
+	public void render(CustomLeashKnotEntity entityIn, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferIn, int packedLightIn) {
+		poseStack.pushPose();
+		poseStack.scale(-1.0F, -1.0F, 1.0F);
+		this.model.setupAnim(entityIn, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
+		VertexConsumer vertexConsumer = bufferIn.getBuffer(this.model.renderType(LEASH_KNOT_TEXTURES));
+		this.model.renderToBuffer(poseStack, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+		poseStack.popPose();
+		super.render(entityIn, entityYaw, partialTicks, poseStack, bufferIn, packedLightIn);
 	}
 
 	/**

@@ -33,7 +33,8 @@ public class Leashed {
         eventBus.addListener(this::setup);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            eventBus.addListener(ClientHandler::onClientSetup);
+            eventBus.addListener(ClientHandler::registerEntityRenders);
+            eventBus.addListener(ClientHandler::registerLayerDefinitions);
         });
     }
 
