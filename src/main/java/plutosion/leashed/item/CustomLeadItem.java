@@ -1,8 +1,8 @@
 package plutosion.leashed.item;
 
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.LeadItem;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.LeadItem;
 
 public class CustomLeadItem extends LeadItem {
 	private final float maxRange;
@@ -15,7 +15,7 @@ public class CustomLeadItem extends LeadItem {
 		return maxRange;
 	}
 
-	public boolean canLeashMob(MobEntity entity, PlayerEntity player) {
+	public boolean canLeashMob(Mob entity, Player player) {
 		return true;
 	}
 }

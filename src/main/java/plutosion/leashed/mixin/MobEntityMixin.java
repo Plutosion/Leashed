@@ -1,108 +1,104 @@
 package plutosion.leashed.mixin;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.item.LeashKnotEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.LeadItem;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.play.server.SMountEntityPacket;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.LeadItem;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.UUID;
-
-@Mixin(MobEntity.class)
+@Mixin(Mob.class)
 public abstract class MobEntityMixin extends LivingEntity {
 
-	protected MobEntityMixin(EntityType<? extends LivingEntity> type, World worldIn) {
+	protected MobEntityMixin(EntityType<? extends LivingEntity> type, Level worldIn) {
 		super(type, worldIn);
 	}
 
-	@Inject(at = @At("HEAD"), method = "checkAndHandleImportantInteractions(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/ActionResultType;", cancellable = true)
-	public void checkAndHandleImportantInteractions(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResultType> cir) {
-		MobEntity entity = (MobEntity) (Object) this;
+	@Inject(at = @At("HEAD"), method = "checkAndHandleImportantInteractions(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;", cancellable = true)
+	public void checkAndHandleImportantInteractions(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+		Mob entity = (Mob) (Object) this;
 		ItemStack itemstack = player.getItemInHand(hand);
 		if(itemstack.getItem() instanceof LeadItem && plutosion.leashed.util.LeadUtil.canBeCustomleashed(entity, player, itemstack)) {
-			CompoundNBT persistentNBT = entity.getPersistentData();
+			CompoundTag persistentNBT = entity.getPersistentData();
 			persistentNBT.putString("LeadItem", itemstack.getItem().getRegistryName().toString());
 			entity.setLeashedTo(player, true);
 			plutosion.leashed.events.LeashHooks.onMobLeashed(entity, player);
 			itemstack.shrink(1);
-			cir.setReturnValue(ActionResultType.sidedSuccess(entity.level.isClientSide));
+			cir.setReturnValue(InteractionResult.sidedSuccess(entity.level.isClientSide));
 		}
 	}
 
-	/**
-	 * @author Mrbysco
-	 * @reason There's no other good way to do it
-	 */
-	@Overwrite()
-	public void dropLeash(boolean sendPacket, boolean dropLead) {
-		MobEntity mobEntity = (MobEntity) (Object) this;
-		if (mobEntity.leashHolder != null) {
-			plutosion.leashed.events.LeashHooks.onMobUnleashed(mobEntity, mobEntity.leashHolder);
-			mobEntity.forcedLoading = false;
-			if (!(mobEntity.leashHolder instanceof PlayerEntity)) {
-				mobEntity.leashHolder.forcedLoading = false;
-			}
-
-			mobEntity.leashHolder = null;
-			mobEntity.leashInfoTag = null;
-			if (!mobEntity.level.isClientSide && dropLead) {
-				mobEntity.spawnAtLocation(plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity));
-			}
-
-			if (!mobEntity.level.isClientSide && sendPacket && mobEntity.level instanceof ServerWorld) {
-				((ServerWorld)mobEntity.level).getChunkSource().broadcast(mobEntity, new SMountEntityPacket(mobEntity, (Entity)null));
-			}
-		}
+	@Inject(method = "dropLeash(ZZ)V", at = @At(
+			value = "FIELD",
+			target = "Lnet/minecraft/world/entity/Mob;leashHolder:Lnet/minecraft/world/entity/Entity;",
+			shift = Shift.BEFORE,
+			ordinal = 1))
+	public void leashedFireUnleashed(boolean sendPacket, boolean dropLead, CallbackInfo ci) {
+		Mob mobEntity = (Mob) (Object) this;
+		plutosion.leashed.events.LeashHooks.onMobUnleashed(mobEntity, mobEntity.leashHolder);
 	}
 
-	/**
-	 * @author Mrbysco
-	 * @reason There's no other good way to do it
-	 */
-	@Overwrite
-	private void restoreLeashFromSave() {
-		MobEntity mobEntity = (MobEntity) (Object) this;
-		if (mobEntity.leashInfoTag != null && mobEntity.level instanceof ServerWorld) {
-			plutosion.leashed.events.LeashHooks.onMobLeashed(mobEntity, mobEntity.leashHolder);
-			Item leadItem = plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity);
-
-			if (mobEntity.leashInfoTag.hasUUID("UUID")) {
-				UUID uuid = mobEntity.leashInfoTag.getUUID("UUID");
-				Entity entity = ((ServerWorld)mobEntity.level).getEntity(uuid);
-				if (entity != null) {
-					mobEntity.setLeashedTo(entity, true);
-					return;
-				}
-			} else if (mobEntity.leashInfoTag.contains("X", 99) && mobEntity.leashInfoTag.contains("Y", 99) && mobEntity.leashInfoTag.contains("Z", 99)) {
-				BlockPos blockpos = new BlockPos(mobEntity.leashInfoTag.getInt("X"), mobEntity.leashInfoTag.getInt("Y"), mobEntity.leashInfoTag.getInt("Z"));
-				if(leadItem instanceof plutosion.leashed.item.CustomLeadItem) {
-					mobEntity.setLeashedTo(plutosion.leashed.entity.CustomLeashKnotEntity.createCustomLeash(mobEntity.level, blockpos), true);
-				} else {
-					mobEntity.setLeashedTo(LeashKnotEntity.getOrCreateKnot(mobEntity.level, blockpos), true);
-				}
-				return;
-			}
-
-			if (mobEntity.tickCount > 100) {
-				mobEntity.spawnAtLocation(leadItem);
-				mobEntity.leashInfoTag = null;
-			}
-		}
+	@ModifyArg(method = "dropLeash(ZZ)V",
+			at = @At(
+					value = "INVOKE",
+					target = "Lnet/minecraft/world/entity/Mob;spawnAtLocation(Lnet/minecraft/world/level/ItemLike;)Lnet/minecraft/world/entity/item/ItemEntity;"),
+			index = 0)
+	public ItemLike leashedChangeDropLeash(ItemLike itemLike) {
+		Mob mobEntity = (Mob) (Object) this;
+		return plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity);
 	}
+
+	@Inject(method = "restoreLeashFromSave()V", at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/nbt/CompoundTag;hasUUID(Ljava/lang/String;)Z",
+			shift = Shift.BEFORE,
+			ordinal = 0))
+	private void LeashedFireOnLeashed(CallbackInfo ci) {
+		Mob mobEntity = (Mob) (Object) this;
+		plutosion.leashed.events.LeashHooks.onMobLeashed(mobEntity, mobEntity.leashHolder);
+	}
+
+	@Inject(method = "restoreLeashFromSave()V", at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/nbt/NbtUtils;readBlockPos(Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/core/BlockPos;",
+			shift = Shift.BEFORE,
+			ordinal = 0), cancellable = true)
+	private void LeashedSetLeashedTo(CallbackInfo ci) {
+		Mob mobEntity = (Mob) (Object) this;
+		BlockPos blockpos = NbtUtils.readBlockPos(mobEntity.leashInfoTag);
+		Item leadItem = plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity);
+		if(leadItem instanceof plutosion.leashed.item.CustomLeadItem) {
+			mobEntity.setLeashedTo(plutosion.leashed.entity.CustomLeashKnotEntity.getOrCreateCustomKnot(mobEntity.level, blockpos), true);
+		} else {
+			mobEntity.setLeashedTo(LeashFenceKnotEntity.getOrCreateKnot(mobEntity.level, blockpos), true);
+		}
+		ci.cancel();
+	}
+
+	@ModifyArg(method = "restoreLeashFromSave()V",
+			at = @At(
+					value = "INVOKE",
+					target = "Lnet/minecraft/world/entity/Mob;spawnAtLocation(Lnet/minecraft/world/level/ItemLike;)Lnet/minecraft/world/entity/item/ItemEntity;"),
+			index = 0)
+	public ItemLike leashedRestoreLeashFromSaveChangeDrop(ItemLike itemLike) {
+		Mob mobEntity = (Mob) (Object) this;
+		return plutosion.leashed.util.LeadUtil.getUsedLeash(mobEntity);
+	}
+
 }

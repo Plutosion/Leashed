@@ -1,22 +1,22 @@
 package plutosion.leashed.events;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.MobEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraftforge.eventbus.api.Event;
 
 import javax.annotation.Nonnull;
 
 public abstract class LeashEvent extends Event {
 	public static class leashMobEvent extends LeashEvent {
-		private MobEntity mobEntity;
-		private Entity leashOwner;
+		private final Mob mobEntity;
+		private final Entity leashOwner;
 
-		public leashMobEvent(@Nonnull MobEntity mobEntity, Entity leashOwner) {
+		public leashMobEvent(@Nonnull Mob mobEntity, Entity leashOwner) {
 			this.mobEntity = mobEntity;
 			this.leashOwner = leashOwner;
 		}
 
-		public MobEntity getMobEntity() {
+		public Mob getMobEntity() {
 			return mobEntity;
 		}
 
@@ -26,15 +26,15 @@ public abstract class LeashEvent extends Event {
 	}
 
 	public static class unleashMobEvent extends LeashEvent {
-		private MobEntity mobEntity;
-		private Entity leashOwner;
+		private final Mob mobEntity;
+		private final Entity leashOwner;
 
-		public unleashMobEvent(@Nonnull MobEntity mobEntity, Entity leashOwner) {
+		public unleashMobEvent(@Nonnull Mob mobEntity, Entity leashOwner) {
 			this.mobEntity = mobEntity;
 			this.leashOwner = leashOwner;
 		}
 
-		public MobEntity getMobEntity() {
+		public Mob getMobEntity() {
 			return mobEntity;
 		}
 

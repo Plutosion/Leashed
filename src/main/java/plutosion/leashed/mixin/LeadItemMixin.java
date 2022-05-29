@@ -1,49 +1,50 @@
 package plutosion.leashed.mixin;
 
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.item.LeashKnotEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.LeadItem;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.decoration.LeashFenceKnotEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.LeadItem;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LeadItem.class)
 public class LeadItemMixin {
 
-	/**
-	 * @author Mrbysco
-	 * @reason There's no other good way to do it
-	 */
-	@Overwrite
-	public static ActionResultType bindPlayerMobs(PlayerEntity player, World world, BlockPos pos) {
-		LeashKnotEntity leashknotentity = null;
+	@Inject(method = "bindPlayerMobs(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/InteractionResult;",
+			at = @At(value = "HEAD"),
+			cancellable = true)
+	private static void leashedBindPlayerMobs(Player player, Level level, BlockPos pos, CallbackInfoReturnable<InteractionResult> cir) {
+		LeashFenceKnotEntity leashfenceknotentity = null;
 		boolean flag = false;
 		double d0 = 7.0D;
-		int i = pos.getX();
-		int j = pos.getY();
-		int k = pos.getZ();
+		int x = pos.getX();
+		int y = pos.getY();
+		int z = pos.getZ();
 
-		for(MobEntity mobentity : world.getEntitiesOfClass(MobEntity.class, new AxisAlignedBB((double)i - d0, (double)j - d0, (double)k - d0, (double)i + d0, (double)j + d0, (double)k + d0))) {
-			if (mobentity.getLeashHolder() == player) {
-				if (leashknotentity == null) {
-					Item boundLeash = plutosion.leashed.util.LeadUtil.getUsedLeash(mobentity);
+		for(Mob mob : level.getEntitiesOfClass(Mob.class, new AABB((double)x - d0, (double)y - d0, (double)z - d0, (double)x + d0, (double)y + d0, (double)z + d0))) {
+			if (mob.getLeashHolder() == player) {
+				if (leashfenceknotentity == null) {
+					Item boundLeash = plutosion.leashed.util.LeadUtil.getUsedLeash(mob);
 					if(boundLeash instanceof plutosion.leashed.item.CustomLeadItem) {
-						leashknotentity = plutosion.leashed.entity.CustomLeashKnotEntity.createCustomLeash(world, pos);
+						leashfenceknotentity = plutosion.leashed.entity.CustomLeashKnotEntity.getOrCreateCustomKnot(level, pos);
+						leashfenceknotentity.playPlacementSound();
 					} else {
-						leashknotentity = LeashKnotEntity.getOrCreateKnot(world, pos);
+						leashfenceknotentity = LeashFenceKnotEntity.getOrCreateKnot(level, pos);
 					}
 				}
 
-				mobentity.setLeashedTo(leashknotentity, true);
+				mob.setLeashedTo(leashfenceknotentity, true);
 				flag = true;
 			}
 		}
 
-		return flag ? ActionResultType.SUCCESS : ActionResultType.PASS;
+		cir.setReturnValue(flag ? InteractionResult.SUCCESS : InteractionResult.PASS);
 	}
 }

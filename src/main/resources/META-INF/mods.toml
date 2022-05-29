@@ -1,7 +1,7 @@
 modLoader="javafml"
-loaderVersion="[35,)"
+loaderVersion="[38,)"
 issueTrackerURL="https://github.com/Plutosion/Leashed/issues"
-license="GNU GENERAL PUBLIC LICENSE"
+license="GNU GPL V3"
 
 [[mods]]
 modId="leashed"
@@ -17,6 +17,12 @@ Get leashed!
 [[dependencies.leashed]]
 modId="minecraft"
 mandatory=true
-versionRange="[1.16.4,1.17)"
+versionRange="[1.18,1.19)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.leashed]]
+modId="forge"
+mandatory=true
+versionRange="[38.0.6,)"
 ordering="NONE"
 side="BOTH"

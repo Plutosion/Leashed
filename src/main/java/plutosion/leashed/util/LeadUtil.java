@@ -1,12 +1,12 @@
 package plutosion.leashed.util;
 
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
 import plutosion.leashed.item.CustomLeadItem;
 
@@ -16,8 +16,8 @@ import java.util.Map;
 public class LeadUtil {
 	private static final Map<String, Item> cachedValues = new HashMap<>();
 
-	public static Item getUsedLeash(MobEntity mobEntity) {
-		CompoundNBT persistentNBT = mobEntity.getPersistentData();
+	public static Item getUsedLeash(Mob mobEntity) {
+		CompoundTag persistentNBT = mobEntity.getPersistentData();
 		if(persistentNBT.contains("LeadItem")) {
 			String leadItemValue = persistentNBT.getString("LeadItem");
 			if(cachedValues.containsKey(leadItemValue)) {
@@ -33,19 +33,18 @@ public class LeadUtil {
 		return Items.LEAD;
 	}
 
-	public static boolean canBeCustomleashed(MobEntity mobEntity, PlayerEntity player, ItemStack stack) {
-		if(stack.getItem() instanceof CustomLeadItem) {
-			CustomLeadItem customLead = (CustomLeadItem)stack.getItem();
+	public static boolean canBeCustomleashed(Mob mobEntity, Player player, ItemStack stack) {
+		if(stack.getItem() instanceof CustomLeadItem customLead) {
 			return !mobEntity.isLeashed() && customLead.canLeashMob(mobEntity, player);
 		} else {
 			return mobEntity.canBeLeashed(player);
 		}
 	}
 
-	public static void forcePlayerBack(MobEntity leashedEntity, PlayerEntity player, double radius) {
-		double d0 = (leashedEntity.getX() - player.getX()) / (double)radius;
-		double d1 = (leashedEntity.getY() - player.getY()) / (double)radius;
-		double d2 = (leashedEntity.getZ() - player.getZ()) / (double)radius;
+	public static void forcePlayerBack(Mob leashedEntity, Player player, double radius) {
+		double d0 = (leashedEntity.getX() - player.getX()) / radius;
+		double d1 = (leashedEntity.getY() - player.getY()) / radius;
+		double d2 = (leashedEntity.getZ() - player.getZ()) / radius;
 		player.setDeltaMovement(player.getDeltaMovement().add(Math.copySign(d0 * d0 * 0.4D, d0), Math.copySign(d1 * d1 * 0.4D, d1), Math.copySign(d2 * d2 * 0.4D, d2)));
 	}
 }
